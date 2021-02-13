@@ -1,0 +1,25 @@
+{
+  "name": "cms_employee_tracker",
+  "version": "1.0.0",
+  "description": "Manages a company's employees using node, inquirer, and MySQL.",
+  "main": "app.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sbharadw/cms_employee_tracker.git"
+  },
+  "author": "Satyam",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sbharadw/cms_employee_tracker/issues"
+  },
+  "homepage": "https://github.com/sbharadw/cms_employee_tracker#readme",
+  "dependencies": {
+    "console.table": "^0.10.0",
+    "figlet": "^1.5.0",
+    "inquirer": "^7.3.3",
+    "mysql": "^2.18.1"
+  }
+}
