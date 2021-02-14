@@ -5,18 +5,12 @@ require('console.table');
 
 class DB {
 
-constructor(connection) {
-
-this.connection = connection;
-
-}  
-
 //Method view all employees
 viewEmployees() {
-    const query = `SELECT employees.id, employees.first_name, employees.last_name, role.title, departments.name AS department, role.salary, 
-    CONCAT(manager.first_name, ' ', manager.last_name) AS Manager FROM employees LEFT JOIN role on employees.role_id = role.id 
-    LEFT JOIN departments on role.department_id = departments.id LEFT JOIN employees manager on manager.id = employees.manager_id;`;
-    this.connection.query(query, function(err, query){
+    const query = `SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name AS department, role.salary, 
+    CONCAT(manager.first_name, ' ', manager.last_name) AS Manager FROM employee LEFT JOIN role on employee.role_id = role.id 
+    LEFT JOIN department on role.department_id = department.id LEFT JOIN employee manager on manager.id = employee.manager_id;`;
+    connection.query(query, function(err, query){
         console.table(query);
         runSearch();
     });
@@ -24,18 +18,18 @@ viewEmployees() {
 
 //Method view all employees by department
 viewEmployeesByDepartment() {
-    const query =`SELECT departments.name AS department, employees.id, employees.first_name, employees.last_name, role.title FROM employees LEFT JOIN role on 
-    employees.role_id = role.id LEFT JOIN departments departments on role.department_id = departments.id WHERE departments.id;`;
-    this.connection.query(query, function(err, query){
+    const query =`SELECT department.name AS department, employee.id, employee.first_name, employee.last_name, role.title FROM employee LEFT JOIN role on 
+    employee.role_id = role.id LEFT JOIN department department on role.department_id = department.id WHERE department.id;`;
+    connection.query(query, function(err, query){
       console.table(query);
-      runSearch();
+      
   });
 };
 
 //Method to view all departments
 viewDepartment() {
-  const query = `select id AS Dept_ID, name AS departments from departments;`;
-  this.connection.query(query, function(err, query){
+  const query = `select id AS Department_Id, name AS department from department;`;
+  connection.query(query, function(err, query){
     console.table(query);
     runSearch();
   });
@@ -43,8 +37,8 @@ viewDepartment() {
 
 //Method to view all roles
 viewRoles() {
-  const query = `select id AS Role_ID, title, salary AS Salaries from role;`;
-  this.connection.query(query, function(err, query){
+  const query = `select id AS Role_ID, title, salary AS Salary from role;`;
+  connection.query(query, function(err, query){
     console.table(query);
     runSearch();
   });
@@ -53,20 +47,20 @@ viewRoles() {
 //Method to add a new employee
 addAnEmployee() {
   //arrays to display prompt choices from database items 
-  const roleChoice = [];
-  this.connection.query("SELECT * FROM role", function(err, resRole) {
+  const choicesRole = [];
+  connection.query("SELECT * FROM role", function(err, resRole) {
     if (err) throw err;
     for (var i = 0; i < resRole.length; i++) {
-      const roleList = resRole[i].title;
-      roleChoice.push(roleList);
+      const listRoles = resRole[i].title;
+      choicesRole.push(listRoles);
     };
 
-    const deptChoice = [];
-    this.connection.query("SELECT * FROM departments", function(err, resDept) {
+    const departmentChoices = [];
+      connection.query("SELECT * FROM department", function(err, resDept) {
       if (err) throw err;
       for (var i = 0; i < resDept.length; i++) {
         const deptList = resDept[i].name;
-        deptChoice.push(deptList);
+        departmentChoices.push(deptList);
     }
     
   inquirer
@@ -85,13 +79,13 @@ addAnEmployee() {
       name: "role_id",
       type: "rawlist",
       message: "Select employee role:",
-      choices: roleChoice
+      choices: choicesRole
     },
     {
       name: "department_id",
       type: "rawlist",
       message: "Select employee's department:",
-      choices: deptChoice
+      choices: departmentChoices
     },
 
   ])
@@ -104,20 +98,20 @@ addAnEmployee() {
           }
         };
 
-        var chosenDept;
+        var departmentChosen;
         for (var i = 0; i < resDept.length; i++) {
           if (resDept[i].name === answer.department_id) {
-            chosenDept = resDept[i];
+            departmentChosen = resDept[i];
           }
         };
       //connection to insert response into database  
-      this.connection.query(
-        "INSERT INTO employees SET ?",
+        connection.query(
+        "INSERT INTO employee SET ?",
         {
           first_name: answer.firstName,
           last_name: answer.lastName,
           role_id: chosenRole.id,
-          department_id: chosenDept.id
+          department_id: departmentChosen.id
         },
         function(err) {
           if (err) throw err;
@@ -141,8 +135,8 @@ addDepartment() {
     }
   ])
   .then(function(answer) {
-    this.connection.query(
-      "INSERT INTO departments SET ?",
+    connection.query(
+      "INSERT INTO department SET ?",
       {
         name: answer.dept
       },
@@ -157,12 +151,12 @@ addDepartment() {
 
 //Method to new add role
 addARole() {
-  const deptChoice = [];
-    this.connection.query("SELECT * FROM departments", function(err, resDept) {
+  const departmentChoices = [];
+    connection.query("SELECT * FROM department", function(err, resDept) {
       if (err) throw err;
       for (var i = 0; i < resDept.length; i++) {
         const deptList = resDept[i].name;
-        deptChoice.push(deptList);
+        departmentChoices.push(deptList);
     }
 
   inquirer
@@ -181,24 +175,24 @@ addARole() {
     name: "department_id",
     type: "rawlist",
     message: "Select employee's department:",
-    choices: deptChoice
+    choices: departmentChoices
   }
 ])
 .then(function(answer) {
 
-  var chosenDept;
+  var departmentChosen;
         for (var i = 0; i < resDept.length; i++) {
           if (resDept[i].name === answer.department_id) {
-            chosenDept = resDept[i];
+            departmentChosen = resDept[i];
           }
         };
 
-  this.connection.query(
+   connection.query(
     "INSERT INTO role SET ?",
     {
       title: answer.title,
       salary:answer.salary,
-      department_id: chosenDept.id
+      department_id: departmentChosen.id
     },
     function(err) {
       if (err) throw err;
@@ -212,12 +206,12 @@ addARole() {
 
 //Method to remove employee
 removeAnEmployee() {
-  const empChoice = [];
-    this.connection.query("SELECT id, CONCAT(first_name, ' ', last_name) AS name FROM employees", function(err, resEmp) {
+  const chosenEmployee = [];
+    connection.query("SELECT id, CONCAT(first_name, ' ', last_name) AS name FROM employee", function(err, resEmp) {
       if (err) throw err;
       for (var i = 0; i < resEmp.length; i++) {
         const empList = resEmp[i].name;
-        empChoice.push(empList);
+        chosenEmployee.push(empList);
     };
 
   inquirer
@@ -226,21 +220,21 @@ removeAnEmployee() {
         name: "employee_id",
         type: "rawlist",
         message: "Select the employee you would like to remove:",
-        choices: empChoice
+        choices: chosenEmployee
       },
   ])
   .then(function(answer) {
 
-    var chosenEmp;
+    var employeeChosen;
         for (var i = 0; i < resEmp.length; i++) {
           if (resEmp[i].name === answer.employee_id) {
-            chosenEmp = resEmp[i];
+            employeeChosen = resEmp[i];
         }
       };
 
-    this.connection.query(
+    connection.query(
       "DELETE FROM employees WHERE id=?",
-      [chosenEmp.id],
+      [employeeChosen.id],
 
       function(err) {
         if (err) throw err;
@@ -254,20 +248,20 @@ removeAnEmployee() {
 
 //Method to update employee role
 updateAnEmployeesRole() {
-  var empChoice = [];
-    this.connection.query("SELECT id, CONCAT(first_name, ' ', last_name) AS name FROM employees", function(err, resEmp) {
+  var chosenEmployee = [];
+    connection.query("SELECT id, CONCAT(first_name, ' ', last_name) AS name FROM employee", function(err, resEmp) {
       if (err) throw err;
       for (var i = 0; i < resEmp.length; i++) {
         const empList = resEmp[i].name;
-        empChoice.push(empList);
+        chosenEmployee.push(empList);
     };
     
-    var roleChoice = [];
-  this.connection.query("SELECT * FROM role", function(err, resRole) {
+    var choicesRole = [];
+    connection.query("SELECT * FROM role", function(err, resRole) {
     if (err) throw err;
     for (var i = 0; i < resRole.length; i++) {
-      const roleList = resRole[i].title;
-      roleChoice.push(roleList);
+      const listRoles = resRole[i].title;
+      choicesRole.push(listRoles);
     };
 
     inquirer
@@ -276,21 +270,21 @@ updateAnEmployeesRole() {
       name: "employee_id",
       type: "rawlist",
       message: "Select the employee you would like to update:",
-      choices: empChoice
+      choices: chosenEmployee
     },
     {
       name: "role_id",
       type: "rawlist",
       message: "Select employee's new role:",
-      choices: roleChoice
+      choices: choicesRole
     }
   ])
   .then(function(answer) {
 
-    var chosenEmp;
+    var employeeChosen;
         for (var i = 0; i < resEmp.length; i++) {
           if (resEmp[i].name === answer.employee_id) {
-            chosenEmp = resEmp[i];
+            employeeChosen = resEmp[i];
         }
       };
 
@@ -300,9 +294,9 @@ updateAnEmployeesRole() {
           chosenRole = resRole[i];
         }
       };
-      this.connection.query(
-        "UPDATE employees SET role_id = ? WHERE id = ?",
-        [chosenRole.id, chosenEmp.id],
+      connection.query(
+        "UPDATE employee SET role_id = ? WHERE id = ?",
+        [chosenRole.id, employeeChosen.id],
         function(err) {
           if (err) throw err;
           console.log("Employee new role successfully updated!");
@@ -316,12 +310,12 @@ updateAnEmployeesRole() {
 
 //Method to update employee manager
 updateAnEmployeesManager() {
-  var empChoice = [];
-    this.connection.query("SELECT id, CONCAT(first_name, ' ', last_name) AS name FROM employees", function(err, resEmp) {
+  var chosenEmployee = [];
+     connection.query("SELECT id, CONCAT(first_name, ' ', last_name) AS name FROM employee", function(err, resEmp) {
       if (err) throw err;
       for (var i = 0; i < resEmp.length; i++) {
         const empList = resEmp[i].name;
-        empChoice.push(empList);
+        chosenEmployee.push(empList);
     };
 
     inquirer
@@ -330,21 +324,21 @@ updateAnEmployeesManager() {
       name:"employees",
       type: "rawlist",
       message: "Select employee you would like to update manager:",
-      choices: empChoice
+      choices: chosenEmployee
     },
     {
       name: "Managerid",
       type: "rawlist",
       message: "Select Manager among employees:",
-      choices: empChoice
+      choices: chosenEmployee
     }
   ])
   .then(function(answer) {
 
-    var chosenEmp;
+    var employeeChosen;
         for (var i = 0; i < resEmp.length; i++) {
           if (resEmp[i].name === answer.employees) {
-            chosenEmp = resEmp[i];
+            employeeChosen = resEmp[i];
         }
       };
       var chosenManager;
@@ -353,10 +347,10 @@ updateAnEmployeesManager() {
             chosenManager = resEmp[i];
         }
       };
-      this.connection.query(
-        "UPDATE employees SET manager_id = ? WHERE id = ?",
+        connection.query(
+        "UPDATE employee SET manager_id = ? WHERE id = ?",
 
-        [chosenManager.id, chosenEmp.id],
+        [chosenManager.id, employeeChosen.id],
         function(err) {
           if (err) throw err;
           console.log("Employee Manager successfully updated!");

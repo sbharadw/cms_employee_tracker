@@ -1,6 +1,10 @@
 const inquirer = require("inquirer");
-const db = require('./db/queries')
+const connection = require('./db/connection');
+const Db = require('./db/queries')
 const figlet = require('figlet');
+require('console.table');
+
+let myDb = new Db(connection);
 
 //code from figlet module to display drawing
 figlet(`EMPLOYEE Tracker!!  :)`, function(err, data) {
@@ -38,43 +42,43 @@ function runSearch() {
 .then(function(answer) {
     switch (answer.action) {
     case "View All Employees":
-      db.viewEmployees();
+      myDb.viewEmployees();
       break;
 
     case "View All Employees By Department":
-      viewEmployeesByDepartment();
+      myDb.viewEmployeesByDepartment();
       break;
 
     case "View departments":
-      viewDepartment();
+      myDb.viewDepartment();
       break;
     
     case "View roles":
-      viewRoles();
+      myDb.viewRoles();
       break;
 
     case "Add Employee":
-      addAnEmployee();
+      myDb.addAnEmployee();
       break;
   
     case "Add department":
-      addDepartment();
+      myDb.addDepartment();
       break;
     
     case "Add role":
-      addARole();
+      myDb.addARole();
       break;
 
     case "Remove Employee":
-      removeAnEmployee();
+      myDb.removeAnEmployee();
       break;
     
     case "Update Employee Role":
-      updateAnEmployeesRole();
+      myDb.updateAnEmployeesRole();
       break;
     
     case "Update Employee Manager":
-      updateAnEmployeesManager();
+      myDb.updateAnEmployeesManager();
       break;
     
     case "Log Off":
@@ -83,8 +87,6 @@ function runSearch() {
     }
   });
 }
-
-
 
 
 
