@@ -1,12 +1,81 @@
 const connection = require('./connection');
+const inquirer = require('inquirer');
 require('console.table');
 
-//Create a class for all queries that can be used in app.js file
+//Function that starts the app and prompt the questions
 
-class DB {
+function runSearch() {
+        inquirer
+          .prompt({
+            name: "action",
+            type: "rawlist",
+            message: "What would you like to do?",
+            choices: [
+              "View All Employees",
+              "View All Employees By Department",
+              "View departments",
+              "View roles",
+              "Add department",
+              "Add role",
+              "Add Employee",
+              "Remove Employee",
+              "Update Employee Role",
+              "Update Employee Manager",
+              "Log Off"
+            ]
+          }) 
+      .then(function(answer) {
+          switch (answer.action) {
+          case "View All Employees":
+            viewEmployees();
+            break;
+      
+          case "View All Employees By Department":
+          viewEmployeesByDepartment();
+          break;
+      
+          case "View departments":
+            viewDepartment();
+            break;
+          
+          case "View roles":
+            viewRoles();
+            break;
+      
+          case "Add Employee":
+            addAnEmployee();
+            break;
+        
+          case "Add department":
+            addDepartment();
+            break;
+          
+          case "Add role":
+            addARole();
+            break;
+      
+          case "Remove Employee":
+            removeAnEmployee();
+            break;
+          
+          case "Update Employee Role":
+            updateAnEmployeesRole();
+            break;
+          
+          case "Update Employee Manager":
+            updateAnEmployeesManager();
+            break;
+          
+          case "Log Off":
+            console.log("Thank you, have an awesome day ahead! :) ")
+            process.exit();
+          }
+        });
+      }
+
 
 //Method view all employees
-viewEmployees() {
+function viewEmployees() {
     const query = `SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name AS department, role.salary, 
     CONCAT(manager.first_name, ' ', manager.last_name) AS Manager FROM employee LEFT JOIN role on employee.role_id = role.id 
     LEFT JOIN department on role.department_id = department.id LEFT JOIN employee manager on manager.id = employee.manager_id;`;
@@ -17,17 +86,17 @@ viewEmployees() {
 };
 
 //Method view all employees by department
-viewEmployeesByDepartment() {
+function viewEmployeesByDepartment() {
     const query =`SELECT department.name AS department, employee.id, employee.first_name, employee.last_name, role.title FROM employee LEFT JOIN role on 
     employee.role_id = role.id LEFT JOIN department department on role.department_id = department.id WHERE department.id;`;
-    connection.query(query, function(err, query){
+      connection.query(query, function(err, query){
       console.table(query);
-      
+      runSearch();
   });
 };
 
 //Method to view all departments
-viewDepartment() {
+function viewDepartment() {
   const query = `select id AS Department_Id, name AS department from department;`;
   connection.query(query, function(err, query){
     console.table(query);
@@ -36,7 +105,7 @@ viewDepartment() {
 };
 
 //Method to view all roles
-viewRoles() {
+function viewRoles() {
   const query = `select id AS Role_ID, title, salary AS Salary from role;`;
   connection.query(query, function(err, query){
     console.table(query);
@@ -45,7 +114,7 @@ viewRoles() {
 };
 
 //Method to add a new employee
-addAnEmployee() {
+function addAnEmployee() {
   //arrays to display prompt choices from database items 
   const choicesRole = [];
   connection.query("SELECT * FROM role", function(err, resRole) {
@@ -125,7 +194,7 @@ addAnEmployee() {
 };
 
 //Method to add department
-addDepartment() {
+function addDepartment() {
   inquirer
     .prompt([
     {
@@ -150,7 +219,7 @@ addDepartment() {
 };
 
 //Method to new add role
-addARole() {
+function addARole() {
   const departmentChoices = [];
     connection.query("SELECT * FROM department", function(err, resDept) {
       if (err) throw err;
@@ -205,12 +274,12 @@ addARole() {
 };
 
 //Method to remove employee
-removeAnEmployee() {
+function removeAnEmployee() {
   const chosenEmployee = [];
-    connection.query("SELECT id, CONCAT(first_name, ' ', last_name) AS name FROM employee", function(err, resEmp) {
+    connection.query("SELECT id, CONCAT(first_name, ' ', last_name) AS name FROM employee", function(err, response) {
       if (err) throw err;
-      for (var i = 0; i < resEmp.length; i++) {
-        const empList = resEmp[i].name;
+      for (var i = 0; i < response.length; i++) {
+        const empList = response[i].name;
         chosenEmployee.push(empList);
     };
 
@@ -226,14 +295,14 @@ removeAnEmployee() {
   .then(function(answer) {
 
     var employeeChosen;
-        for (var i = 0; i < resEmp.length; i++) {
-          if (resEmp[i].name === answer.employee_id) {
-            employeeChosen = resEmp[i];
+        for (var i = 0; i < response.length; i++) {
+          if (response[i].name === answer.employee_id) {
+            employeeChosen = response[i];
         }
       };
 
     connection.query(
-      "DELETE FROM employees WHERE id=?",
+      "DELETE FROM employee WHERE id=?",
       [employeeChosen.id],
 
       function(err) {
@@ -247,12 +316,12 @@ removeAnEmployee() {
 };
 
 //Method to update employee role
-updateAnEmployeesRole() {
+function updateAnEmployeesRole() {
   var chosenEmployee = [];
-    connection.query("SELECT id, CONCAT(first_name, ' ', last_name) AS name FROM employee", function(err, resEmp) {
+    connection.query("SELECT id, CONCAT(first_name, ' ', last_name) AS name FROM employee", function(err, response) {
       if (err) throw err;
-      for (var i = 0; i < resEmp.length; i++) {
-        const empList = resEmp[i].name;
+      for (var i = 0; i < response.length; i++) {
+        const empList = response[i].name;
         chosenEmployee.push(empList);
     };
     
@@ -282,9 +351,9 @@ updateAnEmployeesRole() {
   .then(function(answer) {
 
     var employeeChosen;
-        for (var i = 0; i < resEmp.length; i++) {
-          if (resEmp[i].name === answer.employee_id) {
-            employeeChosen = resEmp[i];
+        for (var i = 0; i < response.length; i++) {
+          if (response[i].name === answer.employee_id) {
+            employeeChosen = response[i];
         }
       };
 
@@ -309,12 +378,12 @@ updateAnEmployeesRole() {
 };
 
 //Method to update employee manager
-updateAnEmployeesManager() {
+function updateAnEmployeesManager() {
   var chosenEmployee = [];
-     connection.query("SELECT id, CONCAT(first_name, ' ', last_name) AS name FROM employee", function(err, resEmp) {
+     connection.query("SELECT id, CONCAT(first_name, ' ', last_name) AS name FROM employee", function(err, response) {
       if (err) throw err;
-      for (var i = 0; i < resEmp.length; i++) {
-        const empList = resEmp[i].name;
+      for (var i = 0; i < response.length; i++) {
+        const empList = response[i].name;
         chosenEmployee.push(empList);
     };
 
@@ -336,15 +405,15 @@ updateAnEmployeesManager() {
   .then(function(answer) {
 
     var employeeChosen;
-        for (var i = 0; i < resEmp.length; i++) {
-          if (resEmp[i].name === answer.employees) {
-            employeeChosen = resEmp[i];
+        for (var i = 0; i < response.length; i++) {
+          if (response[i].name === answer.employees) {
+            employeeChosen = response[i];
         }
       };
       var chosenManager;
-        for (var i = 0; i < resEmp.length; i++) {
-          if (resEmp[i].name === answer.Managerid) {
-            chosenManager = resEmp[i];
+        for (var i = 0; i < response.length; i++) {
+          if (response[i].name === answer.Managerid) {
+            chosenManager = response[i];
         }
       };
         connection.query(
@@ -361,6 +430,5 @@ updateAnEmployeesManager() {
    })
 };
 
-}
 
-module.exports = DB;
+module.exports = {runSearch};
